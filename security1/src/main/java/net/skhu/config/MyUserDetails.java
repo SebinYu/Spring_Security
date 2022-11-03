@@ -17,18 +17,28 @@ public class MyUserDetails implements UserDetails {
     final boolean accountNonLocked = true;
     final boolean credentialsNonExpired = true;
     final String password;
-    final String name;
+    final String username;
     final boolean isEnabled;
     Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+    final String name;
     final String email;
-    final String address;
-    final String address_detail;
+    final String userType;
+    final boolean admin;
 
     public MyUserDetails(User user) {
-        this.email = user.getEmail();
+        switch (user.getUserType()) {
+            case "조직장": authorities.add(new SimpleGrantedAuthority("ROLE_LEADER")); break;
+            case "스터디원": authorities.add(new SimpleGrantedAuthority("ROLE_STUDENT")); break;
+        }
+        if (user.isAdmin()) authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        this.username = user.getUserid();
         this.password = user.getPassword();
+        this.isEnabled = user.isEnabled();
+
         this.name = user.getName();
-        this.address = user.getAddress();
-        this.address_detail = user.getAddress_detail();
+        this.email = user.getEmail();
+        this.userType = user.getUserType();
+        this.admin = user.isAdmin();
     }
 }

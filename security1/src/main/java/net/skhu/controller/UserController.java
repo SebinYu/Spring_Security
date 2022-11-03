@@ -1,47 +1,39 @@
 package net.skhu.controller;
 
-import javax.validation.Valid;
+import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import net.skhu.model.UserRegistration;
-import net.skhu.service.UserService;
 
 @Controller
 public class UserController {
 
-    @Autowired UserService userService;
-
-
-    @GetMapping("register")
-    public String register(Model model) {
-        model.addAttribute(new UserRegistration());
-
-        return "user/register";
+    @RequestMapping("user/index")
+    public String index(Model model) {
+        return "user/index";
     }
 
-    @PostMapping("register")
-    public String register(Model model,
-                           @Valid UserRegistration userRegistration, BindingResult bindingResult)
-    {
-        if (bindingResult.hasErrors()) {
-            return "user/register";
+    @RequestMapping("user/redirect")
+    public String redirect(Model model, HttpServletRequest request) {
+        if (request.isUserInRole("ROLE_ADMIN"))
+            return "redirect:/admin/index";
+        if (request.isUserInRole("ROLE_PROFESSOR")) {
+            return "redirect:/professor/index";
         }
-        String hashedPw = BCrypt.hashpw(userRegistration.getPasswd(), BCrypt.gensalt());
-        userRegistration.setPasswd(hashedPw);
-        userService.save(userRegistration);
-        return "redirect:success";
+        return "redirect:/user/index";
     }
 
-    @RequestMapping("success")
-    public String success() {
-        return "user/success";
+    @Secured("ROLE_ADMIN")
+    @RequestMapping("user/admin_only")
+    public String admin_only(Model model) {
+        return "user/admin_only";
+    }
+
+    @Secured("ROLE_PROFESSOR")
+    @RequestMapping("user/professor_only")
+    public String professor_only(Model model) {
+        return "user/professor_only";
     }
 }
